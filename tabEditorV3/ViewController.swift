@@ -10,8 +10,26 @@ import UIKit
 import MediaPlayer
 import AVFoundation
 
-class ViewController: UIViewController {
-
+class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICollectionViewDataSource, UIGestureRecognizerDelegate {
+    
+    // collection view
+    var collectionView: UICollectionView!
+    let layout: UICollectionViewFlowLayout = UICollectionViewFlowLayout()
+    var fretsNumber: [Int] = [Int]()
+    var collectionViewFrameInCanvas : CGRect = CGRectZero
+    var hitTestRectagles = [String:CGRect]()
+    var animating : Bool = false
+    
+    struct Bundle {
+        var offset : CGPoint = CGPointZero
+        var sourceCell : UICollectionViewCell
+        var representationImageView : UIView
+        var currentIndexPath : NSIndexPath
+        var canvas : UIView
+    }
+    
+    var bundle : Bundle?
+    var fretBoardView: UIView = UIView()
     // music section
     var progressBlock: SoundWaveView!
     var allLocalSong: [MPMediaItem]!
@@ -86,13 +104,187 @@ class ViewController: UIViewController {
         createSoundWave()
         addMusicControlView()
         
+        self.initCollectionView()
+        collectionView.dataSource = self
+        collectionView.delegate = self
+        
+    }
+    
+    func initCollectionView() {
+        for var i = 0; i < 25; i++ {
+            fretsNumber.append(i)
+        }
+        layout.sectionInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+        layout.itemSize = CGSize(width: self.trueWidth / 5, height: 12 / 20 * self.trueHeight)
+        //var flowLayout:UICollectionViewFlowLayout = UICollectionViewFlowLayout()
+        var scrollDirection = UICollectionViewScrollDirection.Horizontal
+        layout.scrollDirection = scrollDirection
+        let frame = CGRectMake(0, self.trueHeight * 8 / 20, self.trueWidth, 12 / 20 * self.trueHeight)
+        collectionView = UICollectionView(frame: frame, collectionViewLayout: layout)
+        collectionView.registerClass(myCell.self, forCellWithReuseIdentifier: "Cell")
+        collectionView.backgroundColor = UIColor.whiteColor()
+        collectionView.bounces = true
+        self.view.addSubview(collectionView)
+        calculateBorders()
+        let gesture = UILongPressGestureRecognizer(target: self,
+            action: "handleGesture:")
+        gesture.minimumPressDuration = 0.2
+        gesture.delegate = self
+        collectionView.addGestureRecognizer(gesture)
+    }
+    
+    func calculateBorders() {
+        if let collectionView = self.collectionView {
+            collectionViewFrameInCanvas = collectionView.frame
+            if self.view != collectionView.superview {
+                collectionViewFrameInCanvas = self.view!.convertRect(collectionViewFrameInCanvas, fromView: collectionView)
+            }
+            var leftRect : CGRect = collectionViewFrameInCanvas
+            leftRect.size.width = 20.0
+            hitTestRectagles["left"] = leftRect
+            var topRect : CGRect = collectionViewFrameInCanvas
+            topRect.size.height = 20.0
+            hitTestRectagles["top"] = topRect
+            var rightRect : CGRect = collectionViewFrameInCanvas
+            rightRect.origin.x = rightRect.size.width - 20.0
+            rightRect.size.width = 20.0
+            hitTestRectagles["right"] = rightRect
+            var bottomRect : CGRect = collectionViewFrameInCanvas
+            bottomRect.origin.y = bottomRect.origin.y + rightRect.size.height - 20.0
+            bottomRect.size.height = 20.0
+            hitTestRectagles["bottom"] = bottomRect
+        }
+    }
+    
+    func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return 25
+    }
+    
+    func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
+        let cell: myCell = collectionView.dequeueReusableCellWithReuseIdentifier("Cell", forIndexPath: indexPath) as! myCell
+        
+        cell.imageView.backgroundColor = UIColor.blueColor().colorWithAlphaComponent(0.5)
+        cell.textLabel.text = "\(self.fretsNumber[indexPath.item])"
+        
+        cell.backgroundColor = UIColor.orangeColor()
+        return cell
+    }
+    
+    func gestureRecognizerShouldBegin(gestureRecognizer: UIGestureRecognizer) -> Bool {
+        if let ca = self.view {
+            if let cv = self.collectionView {
+                let pointPressedInCanvas = gestureRecognizer.locationInView(ca)
+                for cell in cv.visibleCells() as! [UICollectionViewCell] {
+                    let cellInCanvasFrame = ca.convertRect(cell.frame, fromView: cv)
+                    if CGRectContainsPoint(cellInCanvasFrame, pointPressedInCanvas ) {
+                        let representationImage = cell.snapshotViewAfterScreenUpdates(true)
+                        representationImage.frame = cellInCanvasFrame
+                        let offset = CGPointMake(pointPressedInCanvas.x - cellInCanvasFrame.origin.x, pointPressedInCanvas.y - cellInCanvasFrame.origin.y)
+                        let indexPath : NSIndexPath = cv.indexPathForCell(cell as UICollectionViewCell)!
+                        self.bundle = Bundle(offset: offset, sourceCell: cell, representationImageView:representationImage, currentIndexPath: indexPath, canvas: ca)
+                        break
+                    }
+                }
+            }
+        }
+        return (self.bundle != nil)
+    }
+    
+    func checkForDraggingAtTheEdgeAndAnimatePaging(gestureRecognizer: UILongPressGestureRecognizer) {
+        if self.animating == true {
+            return
+        }
+        if let bundle = self.bundle {
+            let pointPressedInCanvas = gestureRecognizer.locationInView(self.view)
+            var nextPageRect : CGRect = self.collectionView!.bounds
+            if self.layout.scrollDirection == UICollectionViewScrollDirection.Horizontal {
+                if CGRectIntersectsRect(bundle.representationImageView.frame, hitTestRectagles["left"]!) {
+                    nextPageRect.origin.x -= nextPageRect.size.width
+                    if nextPageRect.origin.x < 0.0 {
+                        nextPageRect.origin.x = 0.0
+                    }
+                }
+                else if CGRectIntersectsRect(bundle.representationImageView.frame, hitTestRectagles["right"]!) {
+                    nextPageRect.origin.x += nextPageRect.size.width
+                    if nextPageRect.origin.x + nextPageRect.size.width > self.collectionView!.contentSize.width {
+                        nextPageRect.origin.x = self.collectionView!.contentSize.width - nextPageRect.size.width
+                    }
+                }
+            }
+            else if self.layout.scrollDirection == UICollectionViewScrollDirection.Vertical {
+                let rect = hitTestRectagles["top"]
+                if CGRectIntersectsRect(bundle.representationImageView.frame, hitTestRectagles["top"]!) {
+                    nextPageRect.origin.y -= nextPageRect.size.height
+                    if nextPageRect.origin.y < 0.0 {
+                        nextPageRect.origin.y = 0.0
+                    }
+                }
+                else if CGRectIntersectsRect(bundle.representationImageView.frame, hitTestRectagles["bottom"]!) {
+                    nextPageRect.origin.y += nextPageRect.size.height
+                    if nextPageRect.origin.y + nextPageRect.size.height > self.collectionView!.contentSize.height {
+                        nextPageRect.origin.y = self.collectionView!.contentSize.height - nextPageRect.size.height
+                    }
+                }
+            }
+            if !CGRectEqualToRect(nextPageRect, self.collectionView!.bounds){
+                let delayTime = dispatch_time(DISPATCH_TIME_NOW, Int64(0.8 * Double(NSEC_PER_SEC)))
+                dispatch_after(delayTime, dispatch_get_main_queue(), {
+                    self.animating = false
+                    self.handleGesture(gestureRecognizer)
+                });
+                self.animating = true
+                self.collectionView!.scrollRectToVisible(nextPageRect, animated: true)
+            }
+        }
+    }
+    
+    func handleGesture(gesture: UILongPressGestureRecognizer) -> Void {
+        if let bundle = self.bundle {
+            let dragPointOnCanvas = gesture.locationInView(self.view)
+            if gesture.state == UIGestureRecognizerState.Began {
+                bundle.sourceCell.hidden = true
+                self.view?.addSubview(bundle.representationImageView)
+                UIView.animateWithDuration(0.5, animations: { () -> Void in
+                    bundle.representationImageView.alpha = 0.8
+                });
+            }
+            if gesture.state == UIGestureRecognizerState.Changed {
+                // Update the representation image
+                var imageViewFrame = bundle.representationImageView.frame
+                var point = CGPointZero
+                point.x = dragPointOnCanvas.x - bundle.offset.x
+                point.y = dragPointOnCanvas.y - bundle.offset.y
+                imageViewFrame.origin = point
+                bundle.representationImageView.frame = imageViewFrame
+                let dragPointOnCollectionView = gesture.locationInView(self.collectionView)
+                if let indexPath : NSIndexPath = self.collectionView?.indexPathForItemAtPoint(dragPointOnCollectionView) {
+                    self.checkForDraggingAtTheEdgeAndAnimatePaging(gesture)
+                    if indexPath.isEqual(bundle.currentIndexPath) == false {
+                        // If we have a collection view controller that implements the delegate we call the method first
+                        if let delegate = self.collectionView!.delegate as? KDRearrangeableCollectionViewDelegate {
+                            delegate.moveDataItem(bundle.currentIndexPath, toIndexPath: indexPath)
+                        }
+                        self.collectionView!.moveItemAtIndexPath(bundle.currentIndexPath, toIndexPath: indexPath)
+                        self.bundle!.currentIndexPath = indexPath
+                    }
+                }
+            }
+            if gesture.state == UIGestureRecognizerState.Ended {
+                bundle.sourceCell.hidden = false
+                bundle.representationImageView.removeFromSuperview()
+                if let delegate = self.collectionView?.delegate as? KDRearrangeableCollectionViewDelegate { // if we have a proper data source then we can reload and have the data displayed correctly
+                    self.collectionView!.reloadData()
+                }
+                self.bundle = nil
+            }
+        }
     }
     
     func addObjectsOnMainView() {
         // views
         var menuView: UIView = UIView()
         var musicView: UIView = UIView()
-        var fretBoardView: UIView = UIView()
+
         var blueLine: UIView = UIView()
 
         // buttons
@@ -245,23 +437,6 @@ class ViewController: UIViewController {
                 }
             }
         }
-//        if self.addSpecificFingerPoint == true {
-//            let location = sender.locationInView(self.completeStringView)
-//            for var index = 0; index < self.fretPosition.count; index++ {
-//                if location.x < self.fretPosition[self.fretPosition.count - 2] {
-//                    if location.x > self.fretPosition[index] && location.x < self.fretPosition[index + 1] {
-//                        indexFret = index
-//                        break
-//                    }
-//                }
-//            }
-//            for var index = 0; index < 6; index++ {
-//                if CGRectContainsPoint(self.string6View[index].frame, location) {
-//                    indexString = index
-//                    moveFingerPoint(indexFret, indexString: indexString)
-//                }
-//            }
-//        }
     }
     var tabFingerPointChanged: Bool = false
     
@@ -491,7 +666,7 @@ class ViewController: UIViewController {
         var translation = sender.translationInView(self.view)
         sender.view!.center = CGPointMake(sender.view!.center.x, sender.view!.center.y)
         sender.setTranslation(CGPointZero, inView: self.view)
-        var timeChange = NSTimeInterval(-translation.x / 5)
+        var timeChange = NSTimeInterval(-translation.x / 10)
         self.player.currentTime = self.currentTime + timeChange
         self.currentTime = self.player.currentTime
         var persent = CGFloat(self.currentTime) / CGFloat(self.duration)
@@ -502,7 +677,6 @@ class ViewController: UIViewController {
         var minutesC = floor(self.currentTime / 60)
         var secondsC = round(self.currentTime - minutesC * 60)
         self.timeLabel.text = "\(minutesC):\(secondsC) | \(minutesD):\(secondsD)"
-        println("\(-translation.x)")
     }
     
     var countDownImageView: UIImageView = UIImageView()
