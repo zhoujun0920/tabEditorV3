@@ -13,6 +13,16 @@
 		5ACE83D21B969C09001CB8F0 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5ACE83D11B969C09001CB8F0 /* Images.xcassets */; };
 		5ACE83D51B969C09001CB8F0 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 5ACE83D31B969C09001CB8F0 /* LaunchScreen.xib */; };
 		5ACE83E11B969C09001CB8F0 /* tabEditorV3Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5ACE83E01B969C09001CB8F0 /* tabEditorV3Tests.swift */; };
+		5ACE83ED1B97C7C9001CB8F0 /* TJDatabase.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 5ACE83EB1B97C7C9001CB8F0 /* TJDatabase.xcdatamodeld */; };
+		5ACE83EF1B97C83D001CB8F0 /* ExistTabs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5ACE83EE1B97C83D001CB8F0 /* ExistTabs.swift */; };
+		5ACE83F11B97C83E001CB8F0 /* NewTabs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5ACE83F01B97C83E001CB8F0 /* NewTabs.swift */; };
+		5ACE83F31B97C8D2001CB8F0 /* coreData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5ACE83F21B97C8D2001CB8F0 /* coreData.swift */; };
+		5ACE83F51B97C8FC001CB8F0 /* SwiftCoreDataHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5ACE83F41B97C8FC001CB8F0 /* SwiftCoreDataHelper.swift */; };
+		5ACE842B1B9939DB001CB8F0 /* SoundWaveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5ACE84281B9939DB001CB8F0 /* SoundWaveView.swift */; };
+		5ACE842C1B9939DB001CB8F0 /* UIView+Geometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5ACE84291B9939DB001CB8F0 /* UIView+Geometry.swift */; };
+		5ACE842D1B9939DB001CB8F0 /* rainbow.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 5ACE842A1B9939DB001CB8F0 /* rainbow.mp3 */; };
+		5ACE84311B9CC968001CB8F0 /* KDRearrangeableCollectionViewDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5ACE84301B9CC968001CB8F0 /* KDRearrangeableCollectionViewDelegate.swift */; };
+		5ACE84331B9CC972001CB8F0 /* myCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5ACE84321B9CC972001CB8F0 /* myCell.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -36,6 +46,16 @@
 		5ACE83DA1B969C09001CB8F0 /* tabEditorV3Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = tabEditorV3Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		5ACE83DF1B969C09001CB8F0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		5ACE83E01B969C09001CB8F0 /* tabEditorV3Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = tabEditorV3Tests.swift; sourceTree = "<group>"; };
+		5ACE83EC1B97C7C9001CB8F0 /* TJDatabase.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = TJDatabase.xcdatamodel; sourceTree = "<group>"; };
+		5ACE83EE1B97C83D001CB8F0 /* ExistTabs.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExistTabs.swift; sourceTree = "<group>"; };
+		5ACE83F01B97C83E001CB8F0 /* NewTabs.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NewTabs.swift; sourceTree = "<group>"; };
+		5ACE83F21B97C8D2001CB8F0 /* coreData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = coreData.swift; sourceTree = "<group>"; };
+		5ACE83F41B97C8FC001CB8F0 /* SwiftCoreDataHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwiftCoreDataHelper.swift; sourceTree = "<group>"; };
+		5ACE84281B9939DB001CB8F0 /* SoundWaveView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SoundWaveView.swift; sourceTree = "<group>"; };
+		5ACE84291B9939DB001CB8F0 /* UIView+Geometry.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIView+Geometry.swift"; sourceTree = "<group>"; };
+		5ACE842A1B9939DB001CB8F0 /* rainbow.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = rainbow.mp3; sourceTree = "<group>"; };
+		5ACE84301B9CC968001CB8F0 /* KDRearrangeableCollectionViewDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KDRearrangeableCollectionViewDelegate.swift; sourceTree = "<group>"; };
+		5ACE84321B9CC972001CB8F0 /* myCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = myCell.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -77,6 +97,12 @@
 		5ACE83C71B969C09001CB8F0 /* tabEditorV3 */ = {
 			isa = PBXGroup;
 			children = (
+				5ACE842F1B9CC959001CB8F0 /* collectionView */,
+				5ACE842E1B9939E1001CB8F0 /* SoundWave */,
+				5ACE84281B9939DB001CB8F0 /* SoundWaveView.swift */,
+				5ACE84291B9939DB001CB8F0 /* UIView+Geometry.swift */,
+				5ACE842A1B9939DB001CB8F0 /* rainbow.mp3 */,
+				5ACE83EA1B97C77D001CB8F0 /* CoreData */,
 				5ACE83CA1B969C09001CB8F0 /* AppDelegate.swift */,
 				5ACE83CC1B969C09001CB8F0 /* ViewController.swift */,
 				5ACE83CE1B969C09001CB8F0 /* Main.storyboard */,
@@ -110,6 +136,34 @@
 				5ACE83DF1B969C09001CB8F0 /* Info.plist */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		5ACE83EA1B97C77D001CB8F0 /* CoreData */ = {
+			isa = PBXGroup;
+			children = (
+				5ACE83F41B97C8FC001CB8F0 /* SwiftCoreDataHelper.swift */,
+				5ACE83F21B97C8D2001CB8F0 /* coreData.swift */,
+				5ACE83F01B97C83E001CB8F0 /* NewTabs.swift */,
+				5ACE83EE1B97C83D001CB8F0 /* ExistTabs.swift */,
+				5ACE83EB1B97C7C9001CB8F0 /* TJDatabase.xcdatamodeld */,
+			);
+			name = CoreData;
+			sourceTree = "<group>";
+		};
+		5ACE842E1B9939E1001CB8F0 /* SoundWave */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = SoundWave;
+			sourceTree = "<group>";
+		};
+		5ACE842F1B9CC959001CB8F0 /* collectionView */ = {
+			isa = PBXGroup;
+			children = (
+				5ACE84321B9CC972001CB8F0 /* myCell.swift */,
+				5ACE84301B9CC968001CB8F0 /* KDRearrangeableCollectionViewDelegate.swift */,
+			);
+			name = collectionView;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -195,6 +249,7 @@
 				5ACE83D01B969C09001CB8F0 /* Main.storyboard in Resources */,
 				5ACE83D51B969C09001CB8F0 /* LaunchScreen.xib in Resources */,
 				5ACE83D21B969C09001CB8F0 /* Images.xcassets in Resources */,
+				5ACE842D1B9939DB001CB8F0 /* rainbow.mp3 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -212,6 +267,15 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5ACE83ED1B97C7C9001CB8F0 /* TJDatabase.xcdatamodeld in Sources */,
+				5ACE842C1B9939DB001CB8F0 /* UIView+Geometry.swift in Sources */,
+				5ACE83F11B97C83E001CB8F0 /* NewTabs.swift in Sources */,
+				5ACE83F51B97C8FC001CB8F0 /* SwiftCoreDataHelper.swift in Sources */,
+				5ACE84331B9CC972001CB8F0 /* myCell.swift in Sources */,
+				5ACE84311B9CC968001CB8F0 /* KDRearrangeableCollectionViewDelegate.swift in Sources */,
+				5ACE83F31B97C8D2001CB8F0 /* coreData.swift in Sources */,
+				5ACE83EF1B97C83D001CB8F0 /* ExistTabs.swift in Sources */,
+				5ACE842B1B9939DB001CB8F0 /* SoundWaveView.swift in Sources */,
 				5ACE83CD1B969C09001CB8F0 /* ViewController.swift in Sources */,
 				5ACE83CB1B969C09001CB8F0 /* AppDelegate.swift in Sources */,
 			);
@@ -411,6 +475,7 @@
 				5ACE83E61B969C09001CB8F0 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		5ACE83E71B969C09001CB8F0 /* Build configuration list for PBXNativeTarget "tabEditorV3Tests" */ = {
 			isa = XCConfigurationList;
@@ -419,8 +484,22 @@
 				5ACE83E91B969C09001CB8F0 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		5ACE83EB1B97C7C9001CB8F0 /* TJDatabase.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				5ACE83EC1B97C7C9001CB8F0 /* TJDatabase.xcdatamodel */,
+			);
+			currentVersion = 5ACE83EC1B97C7C9001CB8F0 /* TJDatabase.xcdatamodel */;
+			path = TJDatabase.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = 5ACE83BD1B969C09001CB8F0 /* Project object */;
 }

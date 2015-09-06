@@ -9,6 +9,7 @@
 import Foundation
 import CoreData
 
+@objc(ExistTabs)
 class ExistTabs: NSManagedObject {
 
     @NSManaged var index: NSNumber
