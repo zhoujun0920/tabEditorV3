@@ -966,9 +966,12 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
     }
     
     struct tabOnMusicLine {
+        var index: Int = Int()
+        var name: String = String()
         var tab: UIView = UIView()
         var time: NSTimeInterval = NSTimeInterval()
     }
+    
     var allTabsOnMusicLine: [tabOnMusicLine] = [tabOnMusicLine]()
     
     func pressMainViewNoteButton(sender: UIButton) {
@@ -994,6 +997,8 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
             tempView.addSubview(tempLabelView)
             tempStruct.tab = tempView
             tempStruct.time = self.currentTime
+            tempStruct.index = sender.tag
+            tempStruct.name = name!
             self.allTabsOnMusicLine.append(tempStruct)
             self.progressBlock.addSubview(tempView)
         } else {
