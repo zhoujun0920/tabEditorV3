@@ -20,6 +20,8 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
     var hitTestRectagles = [String:CGRect]()
     var animating : Bool = false
     
+    //var mianViewWithTab: [UIView] = [UIView]()
+    
     struct Bundle {
         var offset : CGPoint = CGPointZero
         var sourceCell : UICollectionViewCell
@@ -95,19 +97,42 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
             trueWidth = self.view.frame.width
             trueHeight = self.view.frame.height
         }
+        createSoundWave()
+        
+        var backgroundImage: UIImageView = UIImageView()
+        backgroundImage.frame = CGRectMake(0, 0, self.trueWidth, self.trueWidth)
+        var size: CGSize = CGSizeMake(self.trueWidth, self.trueWidth)
+        backgroundImage.image = uniqueSong.artwork.imageWithSize(size)
+        
+        var blurEffect: UIBlurEffect = UIBlurEffect()
+        blurEffect = UIBlurEffect(style: UIBlurEffectStyle.Light)
+        let blurEffectView = UIVisualEffectView(effect: blurEffect)
+        blurEffectView.frame = CGRectMake(0, 0, self.trueWidth, self.trueHeight)
+        backgroundImage.addSubview(blurEffectView)
+        self.view.addSubview(backgroundImage)
+
         
         self.data.addDefaultData()
         self.editView.frame = CGRectMake(0, 2 / 20 * self.trueHeight, self.trueWidth, 18 / 20 * self.trueHeight)
         addObjectsOnMainView()
         addObjectsOnEditView()
         createStringAndFretPosition()
-        createSoundWave()
         addMusicControlView()
         
         self.initCollectionView()
         collectionView.dataSource = self
         collectionView.delegate = self
-        
+        self.initialMainViewDataArray()
+    }
+    
+    func initialMainViewDataArray() {
+        for var i = 0; i < 25; i++ {
+            var temp: mainViewData = mainViewData()
+            temp.fretNumber = i
+            var tempButton: [UIButton] = [UIButton]()
+            temp.noteButtons = tempButton
+            self.mainViewDataArray.append(temp)
+        }
     }
     
     func initCollectionView() {
@@ -122,8 +147,9 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
         let frame = CGRectMake(0, self.trueHeight * 8 / 20, self.trueWidth, 12 / 20 * self.trueHeight)
         collectionView = UICollectionView(frame: frame, collectionViewLayout: layout)
         collectionView.registerClass(myCell.self, forCellWithReuseIdentifier: "Cell")
-        collectionView.backgroundColor = UIColor.whiteColor()
         collectionView.bounces = true
+        collectionView.backgroundColor = UIColor.clearColor()
+        collectionView.bounces = false
         self.view.addSubview(collectionView)
         calculateBorders()
         let gesture = UILongPressGestureRecognizer(target: self,
@@ -132,7 +158,7 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
         gesture.delegate = self
         collectionView.addGestureRecognizer(gesture)
     }
-    
+
     func calculateBorders() {
         if let collectionView = self.collectionView {
             collectionViewFrameInCanvas = collectionView.frame
@@ -156,6 +182,11 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
         }
     }
     
+    func collectionView(collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAtIndex section: Int) -> CGFloat {
+        return 0.0
+    }
+    
+    
     func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return 25
     }
@@ -163,10 +194,25 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
     func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
         let cell: myCell = collectionView.dequeueReusableCellWithReuseIdentifier("Cell", forIndexPath: indexPath) as! myCell
         
+        println(indexPath.item)
+        
         cell.imageView.backgroundColor = UIColor.blueColor().colorWithAlphaComponent(0.5)
         cell.textLabel.text = "\(self.fretsNumber[indexPath.item])"
         
-        cell.backgroundColor = UIColor.orangeColor()
+
+        for subview in cell.contentView.subviews {
+            if subview.isKindOfClass(UIButton){
+                subview.removeFromSuperview()
+            }
+        }
+
+        
+        for item in self.mainViewDataArray[indexPath.item].noteButtons {
+            cell.contentView.addSubview(item)
+        }
+
+        
+        cell.backgroundColor = UIColor.clearColor()
         return cell
     }
     
@@ -241,6 +287,7 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
     func handleGesture(gesture: UILongPressGestureRecognizer) -> Void {
         if let bundle = self.bundle {
             let dragPointOnCanvas = gesture.locationInView(self.view)
+            //var originalIndexPath: NSIndexPath = self.collectionView.indexPathForItemAtPoint(dragPointOnCanvas)!
             if gesture.state == UIGestureRecognizerState.Began {
                 bundle.sourceCell.hidden = true
                 self.view?.addSubview(bundle.representationImageView)
@@ -257,30 +304,29 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
                 imageViewFrame.origin = point
                 bundle.representationImageView.frame = imageViewFrame
                 let dragPointOnCollectionView = gesture.locationInView(self.collectionView)
-                if let indexPath : NSIndexPath = self.collectionView?.indexPathForItemAtPoint(dragPointOnCollectionView) {
+                if let toIndexPath : NSIndexPath = self.collectionView?.indexPathForItemAtPoint(dragPointOnCollectionView) {
                     self.checkForDraggingAtTheEdgeAndAnimatePaging(gesture)
-                    if indexPath.isEqual(bundle.currentIndexPath) == false {
-                        // If we have a collection view controller that implements the delegate we call the method first
-                        if let delegate = self.collectionView!.delegate as? KDRearrangeableCollectionViewDelegate {
-                            delegate.moveDataItem(bundle.currentIndexPath, toIndexPath: indexPath)
-                        }
-                        self.collectionView!.moveItemAtIndexPath(bundle.currentIndexPath, toIndexPath: indexPath)
-                        self.bundle!.currentIndexPath = indexPath
+                    
+                    
+                    if toIndexPath.isEqual(bundle.currentIndexPath) == false {
+                        moveDataItem(bundle.currentIndexPath, toIndexPath: toIndexPath)
+                        self.collectionView!.moveItemAtIndexPath(bundle.currentIndexPath, toIndexPath: toIndexPath)
+                        self.bundle!.currentIndexPath = toIndexPath
                     }
                 }
             }
             if gesture.state == UIGestureRecognizerState.Ended {
                 bundle.sourceCell.hidden = false
                 bundle.representationImageView.removeFromSuperview()
-                if let delegate = self.collectionView?.delegate as? KDRearrangeableCollectionViewDelegate { // if we have a proper data source then we can reload and have the data displayed correctly
-                    self.collectionView!.reloadData()
-                }
+                collectionView!.reloadData()
                 self.bundle = nil
             }
         }
     }
     
+    var statusLabel: UIImageView = UIImageView()
     func addObjectsOnMainView() {
+        
         // views
         var menuView: UIView = UIView()
         var musicView: UIView = UIView()
@@ -289,7 +335,7 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
 
         // buttons
         var backButton: UIButton = UIButton()
-        var statusLabel: UILabel = UILabel()
+        
         var tuningButton: UIButton = UIButton()
         var resetButton: UIButton = UIButton()
         var removeButton: UIButton = UIButton()
@@ -299,13 +345,15 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
         
         menuView.frame = CGRectMake(0, 0, self.trueWidth, 2 / 20 * self.trueHeight)
         menuView.backgroundColor = UIColor(red: 0.941, green: 0.357, blue: 0.38, alpha: 1)
+        menuView.backgroundColor = UIColor.clearColor()
         self.view.addSubview(menuView)
         
         musicView.frame = CGRectMake(0, 2 / 20 * self.trueHeight, self.trueWidth, 6 / 20 * self.trueHeight)
-        musicView.backgroundColor = UIColor.greenColor()
+        musicView.backgroundColor = UIColor.clearColor()
         self.view.addSubview(musicView)
         
-        fretBoardView.frame = CGRectMake(0, 8 / 20 * self.trueHeight, self.trueWidth, 11 / 20 * self.trueHeight)
+        self.fretBoardView.frame = CGRectMake(0, 8 / 20 * self.trueHeight, self.trueWidth, 11 / 20 * self.trueHeight)
+        self.fretBoardView.backgroundColor = UIColor.clearColor()
         self.view.addSubview(fretBoardView)
         
         var buttonWidth = 2 / 20 * self.trueHeight
@@ -315,29 +363,30 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
         backButton.setImage(UIImage(named: "icon-back"), forState: UIControlState.Normal)
         menuView.addSubview(backButton)
         
-        statusLabel.frame = CGRectMake(5 / 31 * self.trueWidth, 0, 9 / 31 * self.trueWidth, buttonWidth)
-        statusLabel.text = "Tab Editor"
-        statusLabel.textAlignment = NSTextAlignment.Center
+        statusLabel.frame = CGRectMake(6 / 31 * self.trueWidth, 0.25 / 20 * self.trueWidth, 6 / 31 * self.trueWidth, buttonWidth * 0.65)
+        statusLabel.image = UIImage(named: "tabEditor")
+        //statusLabel.textAlignment = NSTextAlignment.Center
         menuView.addSubview(statusLabel)
         
-        tuningButton.frame = CGRectMake(16 / 31 * self.trueWidth, 0, buttonWidth, buttonWidth)
+        tuningButton.frame = CGRectMake(16.5 / 31 * self.trueWidth, 0, buttonWidth, buttonWidth)
         tuningButton.addTarget(self, action: "pressTuningButton:", forControlEvents: UIControlEvents.TouchUpInside)
-        tuningButton.setImage(UIImage(named: "icon-back"), forState: UIControlState.Normal)
+        tuningButton.setImage(UIImage(named: "icon-tuning"), forState: UIControlState.Normal)
         menuView.addSubview(tuningButton)
         
-        resetButton.frame = CGRectMake(19 / 31 * self.trueWidth, 0, buttonWidth, buttonWidth)
+        resetButton.frame = CGRectMake(19.5 / 31 * self.trueWidth, 0, buttonWidth, buttonWidth)
         resetButton.addTarget(self, action: "pressResetButton:", forControlEvents: UIControlEvents.TouchUpInside)
         resetButton.setImage(UIImage(named: "icon-reset"), forState: UIControlState.Normal)
         menuView.addSubview(resetButton)
         
-        removeButton.frame = CGRectMake(22 / 31 * self.trueWidth, 0, buttonWidth, buttonWidth)
+        removeButton.frame = CGRectMake(22.5 / 31 * self.trueWidth, 0, buttonWidth, buttonWidth)
         removeButton.addTarget(self, action: "pressRemoveButton:", forControlEvents: UIControlEvents.TouchUpInside)
-        removeButton.setImage(UIImage(named: "icon-back"), forState: UIControlState.Normal)
+        removeButton.setImage(UIImage(named: "icon-remove"), forState: UIControlState.Normal)
+        removeButton.accessibilityIdentifier = "notRemove"
         menuView.addSubview(removeButton)
         
-        addButton.frame = CGRectMake(25 / 31 * self.trueWidth, 0, buttonWidth, buttonWidth)
+        addButton.frame = CGRectMake(25.5 / 31 * self.trueWidth, 0, buttonWidth, buttonWidth)
         addButton.addTarget(self, action: "pressAddButton:", forControlEvents: UIControlEvents.TouchUpInside)
-        addButton.setImage(UIImage(named: "icon-back"), forState: UIControlState.Normal)
+        addButton.setImage(UIImage(named: "icon-add"), forState: UIControlState.Normal)
         menuView.addSubview(addButton)
         
         doneButton.frame = CGRectMake(28.5 / 31 * self.trueWidth, 0, buttonWidth, buttonWidth)
@@ -349,22 +398,30 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
         blueLine.backgroundColor = UIColor.blackColor()
         self.musicControlView.addSubview(blueLine)
         
-    
+        self.view.addSubview(self.progressBlock)
     }
+    
+    var completeImageView: UIImageView = UIImageView()
     
     func addObjectsOnEditView() {
         self.specificTabsScrollView.frame = CGRectMake(0.5 / 31 * self.trueWidth, 0.25 / 20 * self.trueHeight, 20 / 31 * self.trueWidth, 2.5 / 20 * self.trueHeight)
         self.specificTabsScrollView.contentSize = CGSizeMake(self.trueWidth, 2.5 / 20 * self.trueHeight)
         self.specificTabsScrollView.backgroundColor = UIColor.grayColor().colorWithAlphaComponent(0.5)
+        self.specificTabsScrollView.layer.cornerRadius = 3
         self.editView.addSubview(specificTabsScrollView)
         
         self.tabNameTextField.frame = CGRectMake(23.5 / 31 * self.trueWidth, 0.25 / 20 * self.trueHeight, 7 / 31 * self.trueWidth, 2.5 / 20 * self.trueHeight)
-        self.tabNameTextField.backgroundColor = UIColor.yellowColor().colorWithAlphaComponent(0.5)
+        self.tabNameTextField.backgroundColor = UIColor.grayColor().colorWithAlphaComponent(0.5)
+        self.tabNameTextField.layer.cornerRadius = 3
         self.editView.addSubview(tabNameTextField)
         
         self.completeStringView.frame = CGRectMake(0, 6 / 20 * self.trueHeight, self.trueWidth, 15 / 20 * self.trueHeight)
         self.completeStringView.contentSize = CGSizeMake(4 * self.trueWidth + self.trueWidth / 6, 15 / 20 * self.trueHeight)
-        self.completeStringView.backgroundColor = UIColor.brownColor()
+        self.completeStringView.backgroundColor = UIColor.clearColor()
+        
+        completeImageView.frame = CGRectMake(0, 0, 4 * self.trueWidth + self.trueWidth / 6, 15 / 20 * self.trueHeight)
+        completeImageView.image = UIImage(named: "6-strings-new-with-numbers")
+        self.completeStringView.addSubview(completeImageView)
         self.editView.addSubview(completeStringView)
         
         var singleTapOnString6View: UITapGestureRecognizer = UITapGestureRecognizer(target: self, action: "singleTapOnString6View:")
@@ -619,7 +676,8 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
     }
     
     func removeObjectsOnCompleteStringView() {
-        for item in self.completeStringView.subviews {
+        self.currentNoteButton.removeFromSuperview()
+        for item in self.fingerPoint {
             item.removeFromSuperview()
         }
     }
@@ -634,7 +692,7 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
         var previousButton: UIButton = UIButton()
         previousButton.frame = CGRectMake(28 / 31 * self.trueWidth, 3 / 20 * self.trueHeight, 2.5 / 31 * self.trueWidth, 2.5 / 31 * trueWidth)
         previousButton.addTarget(self, action: "pressPreviousButton:", forControlEvents: UIControlEvents.TouchUpInside)
-        previousButton.setImage(UIImage(named: "icon-back"), forState: UIControlState.Normal)
+        previousButton.setImage(UIImage(named: "icon-previous"), forState: UIControlState.Normal)
         self.musicControlView.addSubview(previousButton)
         
         self.musicControlView.frame = CGRectMake(0, 2 / 20 * self.trueHeight, self.trueWidth, 6 / 20 * self.trueHeight)
@@ -697,8 +755,8 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
             self.timer = NSTimer.scheduledTimerWithTimeInterval(0.1, target: self, selector: Selector("update"), userInfo: nil, repeats: true)
         } else {
             self.player.pause()
-            timer.invalidate()
-            //timer = nil
+            self.timer.invalidate()
+            self.timer = NSTimer()
             self.countDownNumber = 0
         }
     }
@@ -748,14 +806,12 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
         self.allLocalSong = (songCollection.items as! [MPMediaItem]).filter({song in song.playbackDuration > 30 })
         let frame = CGRectMake(0.5 * self.trueWidth, 2 / 20 * self.trueHeight, 4 * self.trueWidth, 6 / 20 * self.trueHeight)
         self.progressBlock = SoundWaveView(frame: frame)
+        self.uniqueSong = allLocalSong[1]
         var url: NSURL = allLocalSong[1].valueForProperty(MPMediaItemPropertyAssetURL) as! NSURL
         self.player = AVAudioPlayer(contentsOfURL: url, error: nil)
         self.duration = self.player.duration
         self.player.volume = 1
         self.progressBlock.SetSoundURL(url)
-        self.view.addSubview(self.progressBlock)
-        
-        
     }
     
     var countDownNumber: Float = 0
@@ -771,6 +827,10 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
             var persent = CGFloat(self.currentTime / self.duration)
             self.progressBlock.setProgress(persent)
             self.progressBlock.frame = CGRectMake(0.5 * self.trueWidth - persent * (4 * self.trueWidth), 2 / 20 * self.trueHeight, 4 * self.trueWidth, 6 / 20 * self.trueHeight)
+            if self.player.playing == false {
+                self.timer.invalidate()
+                self.timer = NSTimer()
+            }
         } else if self.countDownNumber <= 0.9 {
             self.countDownNumber = self.countDownNumber + 0.1
         } else if self.countDownNumber > 0.9 && self.countDownNumber <= 1.9 {
@@ -788,10 +848,24 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
         
     }
     
-    func pressBackButton(sender: UIButton) {
-        self.backToMainView()
+    class mainViewData {
+        var fretNumber: Int = Int()
+        var noteButtons:[UIButton] = []
     }
     
+    var mainViewDataArray: [mainViewData] = [mainViewData]()
+    
+    func moveDataItem(fromIndexPath : NSIndexPath, toIndexPath: NSIndexPath) {
+        println("move data item")
+        let name = self.fretsNumber[fromIndexPath.item]
+        self.fretsNumber.removeAtIndex(fromIndexPath.item)
+        self.fretsNumber.insert(name, atIndex: toIndexPath.item)
+        let temp = self.mainViewDataArray[fromIndexPath.item]
+        self.mainViewDataArray.removeAtIndex(fromIndexPath.item)
+        self.mainViewDataArray.insert(temp, atIndex: toIndexPath.item)
+    }
+    
+
     func backToMainView() {
         UIView.animateWithDuration(0.5, animations: {
             self.specificTabsScrollView.alpha = 0
@@ -800,9 +874,15 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
             self.progressBlock.alpha = 1
             self.completeStringView.alpha = 0
             self.completeStringView.frame = CGRectMake(0, 6 / 20 * self.trueHeight, self.trueWidth, 15 / 20 * self.trueHeight)
+            self.collectionView.alpha = 1
         })
+        
         self.tabNameTextField.text = ""
+        for item in self.fingerPoint {
+            item.removeFromSuperview()
+        }
         self.fingerPoint.removeAll(keepCapacity: false)
+        self.statusLabel.image = UIImage(named: "tabEditor")
         self.addNewTab = false
         self.tabFingerPointChanged = false
         self.addSpecificFingerPoint = false
@@ -814,16 +894,67 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
         }
     }
     
+    var removeAvaliable: Bool = false
+    func changeRemoveButtonStatus(sender: UIButton) {
+        if self.removeAvaliable == false {
+            self.removeAvaliable = true
+            self.statusLabel.image = UIImage(named: "deleteTab")
+        } else {
+            self.removeAvaliable = false
+            self.statusLabel.image = UIImage(named: "tabEditor")
+        }
+    }
+    
+    struct tabOnMusicLine {
+        var tab: UIView = UIView()
+        var time: NSTimeInterval = NSTimeInterval()
+    }
+    var allTabsOnMusicLine: [tabOnMusicLine] = [tabOnMusicLine]()
+    
+    func pressMainViewNoteButton(sender: UIButton) {
+        var tempView: UIView = UIView()
+        tempView.frame = CGRectMake(0 + CGFloat(self.currentTime / self.duration) * (self.progressBlock.frame.width), self.progressBlock.frame.height / 2, 0.03 * self.trueHeight, 0.15 * self.trueHeight)
+        tempView.backgroundColor = UIColor(red: 0.941, green: 0.357, blue: 0.38, alpha: 0.6)
+        tempView.layer.cornerRadius = 2
+        var tempStruct: tabOnMusicLine = tabOnMusicLine()
+        var name = sender.titleLabel?.text
+        var number = count(name!)
+        for var i = 0; i < number; i = i + 2 {
+            var index = advance(name!.startIndex, i + 1)
+            name?.insert("\n", atIndex: index)
+        }
+        var tempLabelView: UILabel = UILabel()
+        tempLabelView.frame = CGRectMake(0, 0, tempView.frame.width, tempView.frame.height)
+        tempLabelView.layer.cornerRadius = 2
+        tempLabelView.font = UIFont.systemFontOfSize(11)
+        tempLabelView.textAlignment = NSTextAlignment.Center
+        tempLabelView.numberOfLines = 3
+        tempLabelView.text = name
+        tempView.addSubview(tempLabelView)
+        tempStruct.tab = tempView
+        tempStruct.time = self.currentTime
+        self.allTabsOnMusicLine.append(tempStruct)
+        self.progressBlock.addSubview(tempView)
+    }
+    
+    func pressBackButton(sender: UIButton) {
+        self.backToMainView()
+    }
+    
     func pressTuningButton(sender: UIButton) {}
 
     func pressResetButton(sender: UIButton) {}
     
-    func pressRemoveButton(sender: UIButton) {}
+    func pressRemoveButton(sender: UIButton) {
+        self.changeRemoveButtonStatus(sender)
+    }
     
     func pressAddButton(sender: UIButton) {
         self.view.addSubview(self.editView)
         self.musicControlView.alpha = 0
         self.progressBlock.alpha = 0
+        self.collectionView.alpha = 0
+        self.statusLabel.image = UIImage(named: "addNewTab")
         UIView.animateWithDuration(0.5, animations: {
             self.completeStringView.alpha = 1
             self.specificTabsScrollView.alpha = 1
@@ -858,10 +989,43 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
                 self.backToMainView()
             }
         }
+        var tempButton: UIButton = UIButton()
+        var buttonY = self.currentNoteButton.tag / 100 - 1
+        var buttonX = self.currentNoteButton.tag - self.currentNoteButton.tag / 100 * 100
+        var buttonWidth = self.trueWidth / 5 / 3
+        var stringPosition = self.string3Position[buttonY - 3] - buttonWidth / 2
+        var fretPosition = self.trueWidth / 5 / 2 - buttonWidth / 2
+        tempButton.tag = self.currentNoteButton.tag
+        tempButton.setTitle(self.currentNoteButton.titleLabel!.text, forState: UIControlState.Normal)
+        tempButton.backgroundColor = UIColor.whiteColor().colorWithAlphaComponent(0.6)
+        tempButton.setTitleColor(UIColor.blackColor(), forState: UIControlState.Normal)
+        tempButton.addTarget(self, action: "pressMainViewNoteButton:", forControlEvents: UIControlEvents.TouchUpInside)
+        tempButton.layer.cornerRadius = 0.5 * buttonWidth
+        tempButton.frame = CGRectMake(fretPosition, stringPosition, buttonWidth, buttonWidth)
+        var noteButtonAdded: Bool = false
+        for item in self.mainViewDataArray {
+            if item.fretNumber == tempButton.tag - tempButton.tag / 100 * 100 {
+                item.noteButtons.append(tempButton)
+            }
+        }
+        backToMainView()
+        collectionView.reloadData()
+        self.statusLabel.image = UIImage(named: "tabEditor")
     }
     
     func pressPreviousButton(sender: UIButton) {
-        println("press button")
+        if self.allTabsOnMusicLine.count > 1 {
+            self.allTabsOnMusicLine.last?.tab.removeFromSuperview()
+            self.allTabsOnMusicLine.removeLast()
+            var previousTime = self.allTabsOnMusicLine.last?.time
+            self.player.currentTime = previousTime!
+        } else if self.allTabsOnMusicLine.count == 1 {
+            self.allTabsOnMusicLine.last?.tab.removeFromSuperview()
+            self.allTabsOnMusicLine.removeLast()
+            self.player.currentTime = 0
+        }else {
+            self.player.currentTime = 0
+        }
     }
 
 }
