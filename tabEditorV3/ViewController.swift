@@ -766,8 +766,11 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
     var countDownNumberImageView: UIImageView = UIImageView()
     var timer = NSTimer()
     
+    var duringCountDown: Bool = false
+    
     func singleTapOnMusicControlView(sender: UITapGestureRecognizer) {
-        if self.player.playing == false {
+        if self.player.playing == false && self.duringCountDown == false {
+            self.duringCountDown = true
             var imageWidth: CGFloat = 5 / 20 * self.trueHeight
             self.countDownImageView.frame = CGRectMake(0.5 * self.trueWidth - imageWidth / 2, 0.5 / 20 * self.trueHeight, imageWidth, imageWidth)
             self.countDownImageView.image = UIImage(named: "countdown-timer")
@@ -778,7 +781,7 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
             self.currentTime = player.currentTime
             
             self.timer = NSTimer.scheduledTimerWithTimeInterval(0.1, target: self, selector: Selector("update"), userInfo: nil, repeats: true)
-        } else {
+        } else if self.duringCountDown == false {
             self.player.pause()
             self.timer.invalidate()
             self.timer = NSTimer()
@@ -843,6 +846,7 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
     
     func update() {
         if self.countDownNumber > 3.0 {
+            self.duringCountDown = false
             var minutesD = floor(self.duration / 60)
             var secondsD = round(self.duration - minutesD * 60)
             var minutesC = floor(self.currentTime / 60)
@@ -901,7 +905,7 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
             self.completeStringView.frame = CGRectMake(0, 6 / 20 * self.trueHeight, self.trueWidth, 15 / 20 * self.trueHeight)
             self.collectionView.alpha = 1
         })
-        
+        self.countDownNumber = 0
         self.tabNameTextField.text = ""
         for item in self.fingerPoint {
             item.removeFromSuperview()
@@ -1007,8 +1011,14 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
         }
     }
     
+    var intoEditView: Bool = false
+    
     func pressBackButton(sender: UIButton) {
-        self.backToMainView()
+        if self.intoEditView == true {
+            self.backToMainView()
+        } else {
+        
+        }
     }
     
     func pressTuningButton(sender: UIButton) {}
@@ -1021,6 +1031,11 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
     }
     
     func pressAddButton(sender: UIButton) {
+        self.intoEditView = true
+        self.player.pause()
+        self.timer.invalidate()
+        
+        //self.timer = NSTimer()
         self.view.addSubview(self.editView)
         self.musicControlView.alpha = 0
         self.progressBlock.alpha = 0
@@ -1035,6 +1050,7 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
     }
     
     func pressDoneButton(sender: UIButton) {
+        if self.intoEditView == true {
         if self.addNewTab == true {
             var addSuccessed: Bool = false
             if self.tabFingerPointChanged == true {
@@ -1089,9 +1105,12 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
             backToMainView()
             }
         }
+        } else {
+        
+        }
         
     }
-    
+
     func pressPreviousButton(sender: UIButton) {
         if self.allTabsOnMusicLine.count > 1 {
             self.allTabsOnMusicLine.last?.tab.removeFromSuperview()
