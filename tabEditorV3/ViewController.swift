@@ -113,6 +113,7 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
 
         
         self.data.addDefaultData()
+        self.data.printAllNewTab()
         self.editView.frame = CGRectMake(0, 2 / 20 * self.trueHeight, self.trueWidth, 18 / 20 * self.trueHeight)
         addObjectsOnMainView()
         addObjectsOnEditView()
@@ -614,21 +615,25 @@ class ViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICo
     }
     
     func pressExistSpecificButton(sender: UIButton) {
-        var index = sender.tag
-        var name = sender.titleLabel?.text
-        self.tabFingerPointChanged = false
-        self.addSpecificFingerPoint = true
-        self.currentNoteButton = sender
-        for item in self.fingerPoint {
-            item.removeFromSuperview()
+        if self.removeAvaliable == false {
+            var index = sender.tag
+            var name = sender.titleLabel?.text
+            self.tabFingerPointChanged = false
+            self.addSpecificFingerPoint = true
+            self.currentNoteButton = sender
+            for item in self.fingerPoint {
+                item.removeFromSuperview()
+            }
+            self.fingerPoint.removeAll(keepCapacity: false)
+            createFingerPoint(index, name: name!)
+        } else {
+            self.changeRemoveButtonStatus(self.removeButton)
         }
-        self.fingerPoint.removeAll(keepCapacity: false)
-        createFingerPoint(index, name: name!)
     }
     
     func createFingerPoint(sender: Int, name: String) {
         var index = NSNumber(integer: sender)
-        var dict = self.data.getExistTabWithName(index, name: name)
+        var dict = self.data.getNewTabWithName(index, name: name)
         var content: String = dict.objectForKey("content") as! String
         var buttonWidth: CGFloat = 5 / 60 * self.trueHeight
         var buttonX = fretPosition[1] - buttonWidth / 2
